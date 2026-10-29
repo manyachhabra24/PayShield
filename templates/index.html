@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayShield - check before you pay</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <span class="logo">PayShield</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Check a payment destination before you send money.</h1>
+      <p class="lead">Enter the website you are about to pay. PayShield looks for
+        warning signs and explains them in plain English, so you can decide
+        with more information.</p>
+    </section>
+
+    <section class="card" aria-labelledby="check-heading">
+      <h2 id="check-heading">Step 1: Check the website</h2>
+
+      <form id="check-form" novalidate>
+        <label for="url-input">Website you plan to pay</label>
+        <input id="url-input" name="url" type="text" maxlength="2048"
+               placeholder="e.g. example.com/checkout" autocomplete="off"
+               aria-describedby="url-hint">
+        <p id="url-hint" class="hint">Paste the website address only. We analyze the
+          address as text and never visit it.</p>
+
+        <label for="message-input">Message you received (optional)</label>
+        <textarea id="message-input" name="message" rows="5" maxlength="2000"
+                  placeholder="Paste the message that asked you to pay, if there was one."></textarea>
+        <p class="hint"><span id="char-count">0</span> / 2000 characters</p>
+
+        <p id="form-error" class="error" role="alert" hidden></p>
+
+        <div class="button-row">
+          <button type="submit" id="analyze-btn" class="btn btn-primary">Check this website</button>
+          <button type="button" id="sample-btn" class="btn btn-secondary">Try a sample</button>
+        </div>
+      </form>
+
+      <p class="privacy">
+        <strong>Privacy:</strong> PayShield only looks at what you type here.
+        Your input is not saved. In a later version, the text may be sent to an
+        external AI service to help explain the results; this page will say so
+        clearly before that happens. Do not enter passwords, card numbers or
+        other financial details.
+      </p>
+    </section>
+
+    <section id="result" class="card" aria-live="polite" hidden>
+      <h2>Result</h2>
+      <p id="result-text"></p>
+    </section>
+
+    <section class="card locked" aria-labelledby="pay-heading">
+      <h2 id="pay-heading">Step 2: Payment (PayPal Sandbox demo)</h2>
+      <p>This step will use PayPal's <strong>sandbox</strong> test environment.
+        No real money is involved. It is not built yet; it arrives after the
+        checking engine is ready.</p>
+      <button type="button" class="btn btn-secondary" disabled>Continue to PayPal (coming soon)</button>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p>PayShield is a hackathon demonstration. A result is a set of warning signs,
+      not proof that a website is safe or unsafe.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
