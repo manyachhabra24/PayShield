@@ -135,3 +135,30 @@ textarea { resize: vertical; }
 .why { font-size: 0.925rem; color: var(--muted); }
 .disclaimer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 600; }
 #result-heading:focus { outline: none; }
+/* ---- Stage 5B: payment ---- */
+.sandbox-banner {
+  background: #fff7e0;
+  border: 1px solid #f0d080;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+}
+.checkbox {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-weight: 500;
+  margin: 1rem 0;
+}
+.checkbox input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; }
+#payment-card paypal-button { display: block; margin-top: 1rem; }
+.pay-result {
+  border: 1px solid #9ec5a0;
+  background: #f0f8f1;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.pay-result h3 { margin-top: 0; }
+.pay-result p { margin: 0.3rem 0; }
+.mono { font-family: ui-monospace, Consolas, monospace; font-size: 0.875rem; overflow-wrap: anywhere; }

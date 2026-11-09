@@ -58,12 +58,29 @@
       <div id="result-body"></div>
     </section>
 
-    <section class="card locked" aria-labelledby="pay-heading">
+        <section id="payment-card" class="card" aria-labelledby="pay-heading">
       <h2 id="pay-heading">Step 2: Payment (PayPal Sandbox demo)</h2>
-      <p>This step will use PayPal's <strong>sandbox</strong> test environment.
-        No real money is involved. It is not built yet; it arrives after the
-        checking engine is ready.</p>
-      <button type="button" class="btn btn-secondary" disabled>Continue to PayPal (coming soon)</button>
+
+      <p class="sandbox-banner"><strong>Sandbox demo, no real money.</strong>
+        This test checkout pays PayShield's own demo merchant. It does <em>not</em>
+        pay the website you checked, and a successful test payment says nothing
+        about whether that website is safe.</p>
+
+      <p id="pay-product" class="muted"></p>
+      <p id="pay-lock-note" class="muted"></p>
+
+      <div id="pay-ack" hidden>
+        <label class="checkbox">
+          <input type="checkbox" id="ack-checkbox">
+          <span id="ack-text"></span>
+        </label>
+      </div>
+
+      <p id="pay-error" class="error" role="alert" hidden></p>
+
+      <paypal-button id="paypal-button" hidden></paypal-button>
+
+      <div id="pay-result" class="pay-result" aria-live="polite" hidden></div>
     </section>
   </main>
 
