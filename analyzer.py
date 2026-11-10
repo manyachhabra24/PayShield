@@ -336,7 +336,7 @@ def analyze(url, message=""):
     if message:
         not_verified.append("Who actually sent the message.")
 
-    limitations = ["Rule-based checks only: no AI interpretation and no live reputation data yet.",
+    limitations = ["The rule-based checks read the address and message as text only. They use no live reputation data.",
                    "The list of known brands is a small starter list."]
     if non_english:
         limitations.append("Message checks only understand English text.")

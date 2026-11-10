@@ -164,6 +164,19 @@ class TestRobustness(unittest.TestCase):
                     "next_steps", "disclaimer", "hostname"):
             self.assertIn(key, r)
 
+class TestDemoPresets(unittest.TestCase):
+    def test_phishing_preset(self):
+        self.assertEqual(analyze("paypal.com.secure-refund-check.example/pay", SAMPLE_MESSAGE)["assessment"],
+                         "high_concern")
 
+    def test_invoice_preset(self):
+        r = analyze("acme-invoices.example/pay",
+                    "DEMO MESSAGE: URGENT: Invoice #4821 is overdue. Please pay today with gift cards and send us the codes.")
+        self.assertEqual(r["assessment"], "some_warning_signs")
+
+    def test_clean_preset(self):
+        r = analyze("github.com/pricing",
+                    "DEMO MESSAGE: Thanks for your order #1042. Your receipt is attached to this email.")
+        self.assertEqual(r["assessment"], "no_obvious_warning_signs")
 if __name__ == "__main__":
     unittest.main()

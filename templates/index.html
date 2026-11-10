@@ -23,6 +23,17 @@
 
     <section class="card" aria-labelledby="check-heading">
       <h2 id="check-heading">Step 1: Check the website</h2>
+            <div class="engine-badges">
+        <span class="badge-pill pill-local">Rule checks: run locally, no internet or AI needed</span>
+        <span class="badge-pill pill-ai" id="ai-badge">AI explanation: off (optional)</span>
+      </div>
+
+      <p class="hint">Try a demo scenario (fake data):</p>
+      <div class="preset-row">
+        <button type="button" class="btn btn-secondary preset-btn" data-preset="phishing">Look-alike + fee</button>
+        <button type="button" class="btn btn-secondary preset-btn" data-preset="invoice">Urgent invoice</button>
+        <button type="button" class="btn btn-secondary preset-btn" data-preset="clean">No warning signs</button>
+      </div>
 
       <form id="check-form" novalidate>
         <label for="url-input">Website you plan to pay</label>
@@ -36,21 +47,27 @@
         <textarea id="message-input" name="message" rows="5" maxlength="2000"
                   placeholder="Paste the message that asked you to pay, if there was one."></textarea>
         <p class="hint"><span id="char-count">0</span> / 2000 characters</p>
+                <label class="checkbox ai-optin">
+          <input type="checkbox" id="ai-checkbox">
+          <span>Also ask an AI model to explain the result (optional). If ticked, the
+            website's hostname, the warning signs found, and the message text are sent
+            to Google's Gemini service.</span>
+        </label>
 
         <p id="form-error" class="error" role="alert" hidden></p>
 
         <div class="button-row">
           <button type="submit" id="analyze-btn" class="btn btn-primary">Check this website</button>
-          <button type="button" id="sample-btn" class="btn btn-secondary">Try a sample</button>
         </div>
       </form>
 
-      <p class="privacy">
-        <strong>Privacy:</strong> PayShield only looks at what you type here.
-        Your input is not saved. In a later version, the text may be sent to an
-        external AI service to help explain the results; this page will say so
-        clearly before that happens. Do not enter passwords, card numbers or
-        other financial details.
+            <p class="privacy">
+        <strong>Privacy:</strong> PayShield only looks at what you type here and does
+        not save it. The AI explanation is <strong>off unless you tick the box</strong>.
+        If you tick it, that text is processed by Google's Gemini API on the free tier,
+        and Google's terms for that tier say submitted content may be used to improve
+        its products, so check Google's current terms. For this demo, use the sample
+        data. Do not enter passwords, card numbers or other financial details.
       </p>
     </section>
     <section id="result" class="card" aria-live="polite" hidden>

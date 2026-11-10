@@ -1,11 +1,12 @@
-# PayShield - main Flask application (Stage 5A).
-# Routes only handle HTTP. Analysis lives in analyzer.py, PayPal in paypal_client.py.
+# PayShield - main Flask application (Stage 4).
+# Routes only handle HTTP. Analysis: analyzer.py. PayPal: paypal_client.py. AI: ai_explainer.py.
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
-load_dotenv()  # must run before paypal_client reads environment variables
+load_dotenv()  # must run before the modules below read environment variables
 
+import ai_explainer
 import paypal_client
 from analyzer import analyze
 from validation import validate_input
@@ -26,14 +27,24 @@ def health():
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze_route():
-    cleaned, error = validate_input(request.get_json(silent=True))
+    data = request.get_json(silent=True)
+    cleaned, error = validate_input(data)
     if error:
         return jsonify({"error": error}), 400
+    use_ai = isinstance(data, dict) and data.get("use_ai") is True
+
     try:
         result = analyze(cleaned["url"], cleaned["message"])
     except Exception as exc:
         app.logger.error("Analysis failed: %s", type(exc).__name__)
         return jsonify({"error": "Something went wrong while checking. Please try again."}), 500
+
+    # AI is optional and can never change the rule-based assessment.
+    if use_ai:
+        result["ai"] = ai_explainer.explain(result, cleaned["message"],
+                                            client_key=request.remote_addr or "unknown")
+    else:
+        result["ai"] = {"status": "skipped"}
     return jsonify(result)
 
 

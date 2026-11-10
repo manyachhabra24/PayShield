@@ -9,11 +9,12 @@ const messageInput = document.getElementById("message-input");
 const charCount = document.getElementById("char-count");
 const formError = document.getElementById("form-error");
 const analyzeBtn = document.getElementById("analyze-btn");
-const sampleBtn = document.getElementById("sample-btn");
+const presetButtons = document.querySelectorAll(".preset-btn");
+const aiBadge = document.getElementById("ai-badge");
 const resultSection = document.getElementById("result");
 const resultHeading = document.getElementById("result-heading");
 const resultBody = document.getElementById("result-body");
-
+const aiCheckbox = document.getElementById("ai-checkbox");
 const payProduct = document.getElementById("pay-product");
 const payLockNote = document.getElementById("pay-lock-note");
 const payAck = document.getElementById("pay-ack");
@@ -26,8 +27,19 @@ const payResult = document.getElementById("pay-result");
 // Clearly fake demonstration data (".example" can never be a real website).
 const SAMPLE_URL = "paypal.com.secure-refund-check.example/pay";
 const SAMPLE_MESSAGE =
-  "DEMO MESSAGE: Your parcel is on hold. Pay a $2.99 release fee within " +
+  "DEMO MESSAGE: Your parcel is on hold. Pay a $5.00 release fee within " +
   "2 hours or it will be returned. Pay now at the link below.";
+const PRESETS = {
+  phishing: { url: SAMPLE_URL, message: SAMPLE_MESSAGE },
+  invoice: {
+    url: "acme-invoices.example/pay",
+    message: "DEMO MESSAGE: URGENT: Invoice #4821 is overdue. Please pay today with gift cards and send us the codes.",
+  },
+  clean: {
+    url: "github.com/pricing",
+    message: "DEMO MESSAGE: Thanks for your order #1042. Your receipt is attached to this email.",
+  },
+};
 
 const BADGE_CLASS = {
   high_concern: "badge-high",
@@ -57,7 +69,49 @@ function addList(title, items) {
   items.forEach((item) => ul.append(el("li", null, item)));
   resultBody.append(ul);
 }
+const AGREEMENT_TEXT = {
+  consistent: "The AI's reading is consistent with the rule-based checks.",
+  partly_consistent: "The AI's reading only partly matches the rule-based checks.",
+  inconsistent: "The AI's reading disagrees with the rule-based checks.",
+};
 
+function renderAi(ai) {
+  const box = el("div", "ai-box");
+  box.append(el("h3", null, "AI interpretation"));
+
+  if (!ai || ai.status === "skipped") {
+    box.append(el("p", "muted",
+      "AI explanation was not requested, so this result uses only PayShield's rule-based checks."));
+    resultBody.append(box);
+    return;
+  }
+  if (ai.status !== "ok") {
+    box.append(el("p", "muted",
+      (ai.reason || "The AI explanation is unavailable.") +
+      " The rule-based result above is not affected."));
+    resultBody.append(box);
+    return;
+  }
+
+  box.append(el("p", "muted",
+    "Written by an AI model from the evidence above. It is an interpretation, not a verified fact, and it can be wrong."));
+  box.append(el("p", null, ai.summary));
+  const agreementText = (AGREEMENT_TEXT[ai.agreement] || "") +
+    (ai.agreement_note ? " " + ai.agreement_note : "");
+  box.append(el("p", "agreement agreement-" + ai.agreement, agreementText));
+
+  function aiList(title, items) {
+    if (!items || items.length === 0) return;
+    box.append(el("h4", null, title));
+    const ul = el("ul");
+    items.forEach((t) => ul.append(el("li", null, t)));
+    box.append(ul);
+  }
+  aiList("Other things the AI noticed in the message (unverified)", ai.extra_observations);
+  aiList("What remains uncertain", ai.uncertainties);
+  box.append(el("p", "muted", "Model: " + ai.model));
+  resultBody.append(box);
+}
 function renderResult(data) {
   resultBody.replaceChildren();
 
@@ -78,6 +132,7 @@ function renderResult(data) {
     resultBody.append(box);
   });
 
+   renderAi(data.ai);
   addList("What we could not verify", data.not_verified);
   addList("What to do next", data.next_steps);
   addList("Limitations of this check", data.limitations);
@@ -99,7 +154,7 @@ function clearError() {
 
 function setLoading(isLoading) {
   analyzeBtn.disabled = isLoading;
-  sampleBtn.disabled = isLoading;
+  presetButtons.forEach((b) => { b.disabled = isLoading; });
   analyzeBtn.textContent = isLoading ? "Checking..." : "Check this website";
 }
 
@@ -156,13 +211,18 @@ function updatePaymentGate() {
   }
 
   if (!isUnlocked()) {
-    payLockNote.textContent = "Tick the box above to continue.";
+    payLockNote.textContent = "Acknowledge the warnings below to unlock the checkout.";
     payLockNote.hidden = false;
     payButton.hidden = true;
     return;
   }
 
-  payLockNote.hidden = true;
+  if (needsAck) {
+    payLockNote.textContent = "Warnings acknowledged. Checkout unlocked.";
+    payLockNote.hidden = false;
+  } else {
+    payLockNote.hidden = true;
+  }
   payButton.hidden = false;
 }
 
@@ -332,14 +392,24 @@ messageInput.addEventListener("input", () => {
   charCount.textContent = String(messageInput.value.length);
 });
 
-sampleBtn.addEventListener("click", () => {
-  urlInput.value = SAMPLE_URL;
-  messageInput.value = SAMPLE_MESSAGE;
-  charCount.textContent = String(messageInput.value.length);
-  clearError();
-  resultSection.hidden = true;
-  resetForNewCheck();
-  urlInput.focus();
+presetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const preset = PRESETS[button.dataset.preset];
+    if (!preset) return;
+    urlInput.value = preset.url;
+    messageInput.value = preset.message;
+    charCount.textContent = String(messageInput.value.length);
+    clearError();
+    resultSection.hidden = true;
+    resetForNewCheck();
+    urlInput.focus();
+  });
+});
+
+aiCheckbox.addEventListener("change", () => {
+  aiBadge.textContent = aiCheckbox.checked
+    ? "AI explanation: ON (sends text to Google Gemini)"
+    : "AI explanation: off (optional)";
 });
 
 form.addEventListener("submit", async (event) => {
@@ -357,13 +427,13 @@ form.addEventListener("submit", async (event) => {
 
   setLoading(true);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timer = setTimeout(() => controller.abort(), 40000);
 
   try {
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: url, message: messageInput.value }),
+      body: JSON.stringify({ url: url, message: messageInput.value, use_ai: aiCheckbox.checked }),
       signal: controller.signal,
     });
 
